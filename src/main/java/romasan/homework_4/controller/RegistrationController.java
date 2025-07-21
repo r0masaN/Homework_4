@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import romasan.homework_4.model.User;
-import romasan.homework_4.model.UserDTO;
+import romasan.homework_4.model.DTO.UserRegistrationDTO;
 import romasan.homework_4.service.RegistrationService;
 
 @RestController
@@ -22,7 +21,7 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public ResponseEntity<String> register(@Validated @RequestBody final UserDTO newUser) {
-        return this.service.register(newUser);
+    public ResponseEntity<String> register(@Validated @RequestBody final UserRegistrationDTO newUserDTO) {
+        return this.service.register(newUserDTO);
     }
 }

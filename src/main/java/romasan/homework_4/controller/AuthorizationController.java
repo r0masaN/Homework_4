@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import romasan.homework_4.model.UserDTO;
+import romasan.homework_4.model.DTO.UserAuthorizationDTO;
 import romasan.homework_4.service.AuthorizationService;
 
 @RestController
@@ -18,8 +18,8 @@ public class AuthorizationController {
     }
 
     @PostMapping
-    public ResponseEntity<String> authorize(@Validated @RequestBody final UserDTO user) {
-        return this.service.authorize(user);
+    public ResponseEntity<String> authorize(@Validated @RequestBody final UserAuthorizationDTO userDTO) {
+        return this.service.authorize(userDTO);
     }
 
     @PostMapping("/exit")

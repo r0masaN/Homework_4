@@ -1,14 +1,15 @@
-package romasan.homework_4.model;
+package romasan.homework_4.model.DTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import romasan.homework_4.model.UserRole;
 import romasan.homework_4.validation.LoginValidation;
 import romasan.homework_4.validation.PasswordValidation;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public final class UserDTO {
+public final class UserRegistrationDTO {
     @LoginValidation(message = "login (8-24 symbols) must contain at least 1 lower, upper, numeric and special symbol")
     private String login;
     @PasswordValidation(message = "password (10-32 symbols) must contain at least 1 lower, upper, numeric and special symbol")

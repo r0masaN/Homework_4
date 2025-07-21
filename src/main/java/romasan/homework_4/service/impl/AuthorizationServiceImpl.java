@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import romasan.homework_4.model.UserDTO;
+import romasan.homework_4.model.DTO.UserAuthorizationDTO;
 import romasan.homework_4.model.User;
 import romasan.homework_4.repository.UserRepository;
 import romasan.homework_4.service.AuthorizationService;
@@ -27,7 +27,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public ResponseEntity<String> authorize(final UserDTO user) {
+    public ResponseEntity<String> authorize(final UserAuthorizationDTO user) {
         final Optional<User> existingUser = this.repository.findByLogin(user.getLogin());
         if (existingUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(String.format("User with login \"%s\" not found!", user.getLogin()));
