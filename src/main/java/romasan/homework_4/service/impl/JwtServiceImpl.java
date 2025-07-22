@@ -3,6 +3,7 @@ package romasan.homework_4.service.impl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 import romasan.homework_4.configuration.JwtProperties;
@@ -43,6 +44,7 @@ public class JwtServiceImpl implements JwtService {
             this.getClaims(token);
             return true;
         } catch (final JwtException | IllegalArgumentException e) {
+            System.out.println("TOKEN VALIDATION ERROR: " + e.getMessage());
             return false;
         }
     }
@@ -59,13 +61,16 @@ public class JwtServiceImpl implements JwtService {
                 .claim("roles", user.getRoles())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + validityInMillis))
-                .signWith(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes(StandardCharsets.UTF_8)))
+                .signWith(
+                        Keys.hmacShaKeyFor(this.properties.getSecretKey().getBytes(StandardCharsets.UTF_8)),
+                        SignatureAlgorithm.HS384
+                )
                 .compact();
     }
 
     private Claims getClaims(final String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(properties.getSecretKey().getBytes(StandardCharsets.UTF_8))
+                .setSigningKey(this.properties.getSecretKey().getBytes(StandardCharsets.UTF_8))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

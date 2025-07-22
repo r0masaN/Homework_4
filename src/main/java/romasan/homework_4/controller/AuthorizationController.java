@@ -34,7 +34,7 @@ public class AuthorizationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestParam String refreshToken) {
+    public ResponseEntity<?> refreshToken(@RequestBody String refreshToken) {
         if (!this.jwtService.validateToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid refresh token!"));
         }
