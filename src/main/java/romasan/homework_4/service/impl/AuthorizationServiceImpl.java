@@ -1,16 +1,16 @@
 package romasan.homework_4.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import romasan.homework_4.exception.UserNotFoundException;
 import romasan.homework_4.model.DTO.UserAuthorizationDTO;
 import romasan.homework_4.model.User;
 import romasan.homework_4.repository.UserRepository;
 import romasan.homework_4.service.AuthorizationService;
 import romasan.homework_4.service.JwtService;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -27,23 +27,30 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public ResponseEntity<String> authorize(final UserAuthorizationDTO user) {
+    public Map<String, String> authorize(final UserAuthorizationDTO user) {
         final Optional<User> existingUser = this.repository.findByLogin(user.getLogin());
+
         if (existingUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(String.format("User with login \"%s\" not found!", user.getLogin()));
+            throw new UserNotFoundException("User with login \"%s\" not found!".formatted(user.getLogin()));
         }
 
-        if (!this.passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect password!");
+        final User foundUser = existingUser.get();
+
+        if (!this.passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
+            throw new IllegalArgumentException("Incorrect password!");
         }
 
-        final String token = this.jwtService.generateToken(existingUser.get());
-        return ResponseEntity.ok(token);
+        final String accessToken = this.jwtService.generateAccessToken(foundUser);
+        final String refreshToken = this.jwtService.generateRefreshToken(foundUser);
+
+        return Map.of(
+                "accessToken", accessToken,
+                "refreshToken", refreshToken
+        );
     }
 
     @Override
-    public ResponseEntity<String> exit(final String token) {
-        //TODO exit
-        return ResponseEntity.ok("User exited successfully!");
+    public Optional<User> findByLogin(final String login) {
+        return this.repository.findByLogin(login);
     }
 }

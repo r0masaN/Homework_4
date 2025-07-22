@@ -1,10 +1,13 @@
 package romasan.homework_4.service;
 
-import org.springframework.http.ResponseEntity;
 import romasan.homework_4.model.DTO.UserAuthorizationDTO;
+import romasan.homework_4.model.User;
+
+import java.util.Map;
+import java.util.Optional;
 
 public interface AuthorizationService {
-    ResponseEntity<String> authorize(UserAuthorizationDTO user);
+    Map<String, String> authorize(UserAuthorizationDTO user);
 
-    ResponseEntity<String> exit(String token);
+    Optional<User> findByLogin(String login);
 }

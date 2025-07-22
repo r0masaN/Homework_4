@@ -4,12 +4,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import romasan.homework_4.model.User;
 import romasan.homework_4.repository.UserRepository;
+import romasan.homework_4.service.BlackListService;
 import romasan.homework_4.service.JwtService;
 
 import java.io.IOException;
@@ -19,10 +21,12 @@ import java.util.UUID;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
+    private final BlackListService blackListService;
     private final UserRepository repository;
 
-    public JwtAuthenticationFilter(final JwtService jwtService, final UserRepository repository) {
+    public JwtAuthenticationFilter(final JwtService jwtService, final BlackListService blackListService, final UserRepository repository) {
         this.jwtService = jwtService;
+        this.blackListService = blackListService;
         this.repository = repository;
     }
 
@@ -37,6 +41,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring("Bearer ".length());
+
+        if (this.blackListService.containsToken(token)) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        }
+
         UUID userId;
         try {
             userId = this.jwtService.validateTokenAndGetUserId(token);
