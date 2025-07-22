@@ -1,0 +1,5 @@
+![Registration](PROOF%20SCRENSHOOTS/registration.png)
+![Authorization](PROOF%20SCRENSHOOTS/authorization.png)
+![Info](PROOF%20SCRENSHOOTS/info.png)
+![Exit](PROOF%20SCRENSHOOTS/exit.png)
+![Info (after exit)](PROOF%20SCRENSHOOTS/info%20(after%20exit).png)
