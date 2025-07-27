@@ -1,18 +1,25 @@
 package romasan.homework_4.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.core.type.TypeReference;
 import romasan.homework_4.configuration.JwtProperties;
 import romasan.homework_4.model.User;
 import romasan.homework_4.service.JwtService;
 
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.UUID;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -51,14 +58,18 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String extractLogin(final String token) {
-        return this.getClaims(token).get("login", String.class);
+        return String.class.cast(this.decryptClaims(this.getClaims(token).get("enc", String.class)).get("login"));
     }
 
     private String buildToken(final User user, final long validityInMillis) {
+        final Map<String, Object> claims = new HashMap<>();
+        claims.put("login", user.getLogin());
+        claims.put("roles", user.getRoles());
+        final String encryptedClaims = this.encryptClaims(claims);
+
         return Jwts.builder()
                 .setSubject(user.getId().toString())
-                .claim("login", user.getLogin())
-                .claim("roles", user.getRoles())
+                .claim("enc", encryptedClaims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + validityInMillis))
                 .signWith(
@@ -74,5 +85,54 @@ public class JwtServiceImpl implements JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    private String encryptClaims(final Map<String, Object> claims) {
+        try {
+            final SecretKey secretKey = new SecretKeySpec(this.properties.getSecretKey().getBytes(StandardCharsets.UTF_8), "AES");
+            final Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+
+            final String json = new ObjectMapper().writeValueAsString(claims);
+            final byte[] encryptedBytes = cipher.doFinal(json.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+
+        } catch (final NoSuchPaddingException
+                       | NoSuchAlgorithmException
+                       | InvalidKeyException
+                       | JsonProcessingException
+                       | IllegalBlockSizeException
+                       | BadPaddingException e) {
+            throw new RuntimeException("Encryption failed!", e);
+
+        } finally {
+
+        }
+    }
+
+    private Map<String, Object> decryptClaims(final String encryptedStr) {
+        try {
+            final SecretKey secretKey = new SecretKeySpec(this.properties.getSecretKey().getBytes(StandardCharsets.UTF_8), "AES");
+            final Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+
+            final byte[] decodedBytes = Base64.getDecoder().decode(encryptedStr);
+            final byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+            final String json = new String(decryptedBytes, StandardCharsets.UTF_8);
+
+            return new ObjectMapper().readValue(json, new TypeReference<>() {});
+
+        } catch (NoSuchPaddingException
+                 | IllegalBlockSizeException
+                 | NoSuchAlgorithmException
+                 | BadPaddingException
+                 | InvalidKeyException
+                 | JsonProcessingException e) {
+            throw new RuntimeException("Encryption failed!", e);
+
+        } finally {
+
+        }
     }
 }
